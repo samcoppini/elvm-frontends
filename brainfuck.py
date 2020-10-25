@@ -7,6 +7,7 @@ from collections import defaultdict
 import sys
 from typing import List
 
+
 def compileToEir(code: str) -> str:
     module = Module()
 
@@ -38,37 +39,39 @@ def compileToEir(code: str) -> str:
         changes.clear()
 
     for c in code:
-        if c == '>':
+        if c == ">":
             curMove += 1
-        elif c == '<':
+        elif c == "<":
             curMove -= 1
-        elif c == '+':
+        elif c == "+":
             changes[curMove] += 1
-        elif c == '-':
+        elif c == "-":
             changes[curMove] -= 1
-        elif c == '.':
+        elif c == ".":
             pushChanges()
             curMove = 0
             module.addInstruction(Op.LOAD, Register.B, Register.A)
             module.addInstruction(Op.PUTC, src=Register.B)
-        elif c == ',':
+        elif c == ",":
             pushChanges()
             curMove = 0
             module.addInstruction(Op.GETC, Register.B)
             module.addInstruction(Op.STORE, Register.A, Register.B)
-        elif c == '[':
+        elif c == "[":
             pushChanges()
             curMove = 0
             module.addInstruction(Op.LOAD, Register.B, Register.A)
             loopStarts.append(module.addInstruction(Op.JEQ, Register.B, 0))
-        elif c == ']':
+        elif c == "]":
             pushChanges()
             curMove = 0
             if not loopStarts:
                 raise Exception("Unmatched ]")
             loopStart = loopStarts.pop()
             module.addInstruction(Op.LOAD, Register.B, Register.A)
-            loopEnd = module.addInstruction(Op.JNE, Register.B, 0, loopStart.getLabel(module))
+            loopEnd = module.addInstruction(
+                Op.JNE, Register.B, 0, loopStart.getLabel(module)
+            )
             loopStart.jmp = Value(loopEnd.getLabel(module))
 
     if loopStarts:
@@ -77,6 +80,7 @@ def compileToEir(code: str) -> str:
     module.addInstruction(Op.EXIT)
 
     return module.compile()
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Compiles brainfuck to ELVM EIR")
@@ -102,4 +106,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
