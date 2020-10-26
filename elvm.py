@@ -97,7 +97,7 @@ class Label:
         if type(self.labelled) == int:
             return f".L{self.num}: .long {self.labelled}"
         elif type(self.labelled) == str:
-            return f'.L{self.num}: .string "{json.dumps(self.labelled)}"'
+            return f'.L{self.num}: .string {json.dumps(self.labelled)}'
         else:
             return f".L{self.num}: "
 
@@ -134,7 +134,7 @@ class Module:
         label = self.curLabel
         self.curLabel += 1
         self.data.append(Label(data, label))
-        return self.data[label]
+        return self.data[-1]
 
     def compile(self) -> str:
         lines: List[str] = []
