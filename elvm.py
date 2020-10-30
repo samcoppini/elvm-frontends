@@ -89,17 +89,22 @@ class Instruction:
 
 
 class Label:
-    def __init__(self, labelled: Union[int, str, Instruction], num: int) -> None:
+    def __init__(self, labelled: List[Union[int, str, Instruction]], num: int) -> None:
         self.labelled = labelled
         self.num = num
 
     def compile(self) -> str:
-        if type(self.labelled) == int:
-            return f".L{self.num}: .long {self.labelled}"
-        elif type(self.labelled) == str:
-            return f'.L{self.num}: .string {json.dumps(self.labelled)}'
-        else:
-            return f".L{self.num}: "
+        labelParts = [f'.L{self.num}: ']
+
+        for labelled in self.labelled:
+            if type(labelled) == int:
+                labelParts.append(f'  .long {labelled}')
+            elif type(labelled) == Label:
+                labelParts.append(f'  .long .L{labelled.num}')
+            elif type(labelled) == str:
+                labelParts.append(f'  .string {json.dumps(labelled)}')
+
+        return '\n'.join(labelParts)
 
 
 class Module:
@@ -127,10 +132,12 @@ class Module:
 
         labelNum = self.curLabel
         self.curLabel += 1
-        inst.label = Label(inst, labelNum)
+        inst.label = Label([], labelNum)
         return inst.label
 
-    def addData(self, data: Union[int, str]) -> Label:
+    def addData(self, data: Union[int, str, Label, List[Union[int, Label, str]]]) -> Label:
+        if type(data) != list:
+            data = [data]
         label = self.curLabel
         self.curLabel += 1
         self.data.append(Label(data, label))
